@@ -28,7 +28,7 @@ import be.zvz.koreanbots.type.mybots.response.Servers as ServersResponse
 
 class KoreanBots(val token: String) {
     init {
-        FuelManager.instance.basePath = "https://api.koreanbots.dev"
+        FuelManager.instance.basePath = "https://api.koreanbots.dev/v1"
     }
 
     fun getBotList(page: Int): BotList {
