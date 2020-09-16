@@ -33,5 +33,5 @@ dependencies {
     implementation group: 'com.github.kittinunf.fuel', name: 'fuel-jackson', version: '2.2.3'
 
     // Jackson Library
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.11.0'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.11.2'
 }
