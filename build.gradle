@@ -29,7 +29,7 @@ dependencies {
     implementation group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8'
 
     // HTTP Library
-    implementation group: 'com.github.kittinunf.fuel', name: 'fuel', version: '2.2.3'
+    implementation group: 'com.github.kittinunf.fuel', name: 'fuel', version: '2.3.1'
     implementation group: 'com.github.kittinunf.fuel', name: 'fuel-jackson', version: '2.3.1'
 
     // Jackson Library
