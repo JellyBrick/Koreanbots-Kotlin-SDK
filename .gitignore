@@ -6,3 +6,6 @@
 
 # Ignore Gradle build output directory
 build
+
+# Ignore Auto-generated Info File
+src/main/kotlin/be/zvz/koreanbots/KoreanBotsInfo.kt
