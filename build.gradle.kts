@@ -10,17 +10,14 @@ repositories {
     mavenCentral()
 }
 
-val fuelVersion = project.property("fuel.version") as String
-val jacksonVersion = project.property("jackson.version") as String
-
 dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
 
-    implementation("com.github.kittinunf.fuel:fuel:$fuelVersion")
-    implementation("com.github.kittinunf.fuel:fuel-jackson:$fuelVersion")
+    implementation("com.github.kittinunf.fuel:fuel:2.3.1")
+    implementation("com.github.kittinunf.fuel:fuel-jackson:2.3.1")
 
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.11.2")
 }
 
 tasks.withType<KotlinCompile> {
