@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.core.FuelError
 import com.github.kittinunf.fuel.core.FuelManager
 import com.github.kittinunf.fuel.core.Headers
@@ -33,7 +32,7 @@ import com.github.kittinunf.result.getOrElse
 
 class KoreanBots(val token: String) {
     fun getBotInfo(id: String): Bot {
-        val (_, _, rst) = Fuel.get("/bots/$id")
+        val (_, _, rst) = fuelManager.get("/bots/$id")
             .responseObject<ResponseWrapper<Bot>>(mapper = mapper)
 
         return handleResponse(rst)
@@ -41,7 +40,7 @@ class KoreanBots(val token: String) {
     }
 
     fun updateBotServers(id: String, servers: Int) {
-        val (_, _, rst) = Fuel.post("/bots/$id/stats")
+        val (_, _, rst) = fuelManager.post("/bots/$id/stats")
             .header(Headers.AUTHORIZATION, token)
             .objectBody(ServersUpdate(servers), mapper = mapper)
             .responseObject<ResponseWrapper<Unit>>(mapper = mapper)
@@ -50,7 +49,7 @@ class KoreanBots(val token: String) {
     }
 
     fun getUserInfo(id: String): User {
-        val (_, _, rst) = Fuel.get("/users/$id")
+        val (_, _, rst) = fuelManager.get("/users/$id")
             .responseObject<ResponseWrapper<User>>(mapper = mapper)
 
         return handleResponse(rst)
@@ -67,17 +66,16 @@ class KoreanBots(val token: String) {
     }
 
     companion object {
-        const val BASE_URL = "https://koreanbots.dev/api/v2"
-
+        private val fuelManager = FuelManager()
         private val mapper = ObjectMapper()
             .registerKotlinModule()
             .enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING)
             .enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING)
 
         init {
-            FuelManager.instance.basePath = BASE_URL
-            FuelManager.instance.baseHeaders = mapOf(
-                Headers.USER_AGENT to "Kotlin SDK(alpha, https://github.com/nkgcp/Koreanbots-Kotlin-SDK)"
+            fuelManager.basePath = KoreanBotsInfo.API_BASE_URL
+            fuelManager.baseHeaders = mapOf(
+                Headers.USER_AGENT to "Kotlin SDK(${KoreanBotsInfo.VERSION}, ${KoreanBotsInfo.GITHUB_URL})"
             )
         }
     }

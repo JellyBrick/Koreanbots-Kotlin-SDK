@@ -7,7 +7,7 @@ fun KoreanBots.getWidgetUrl(
     scale: Double = 1.0,
     icon: Boolean = true
 ): String {
-    return "${KoreanBots.BASE_URL}/widget/bots/$type/$id.svg?style=${style.apiName}&scale$scale&icon=$icon"
+    return "${KoreanBotsInfo.API_BASE_URL}/widget/bots/$type/$id.svg?style=${style.apiName}&scale$scale&icon=$icon"
 }
 
 enum class WidgetType(val apiName: String) {
