@@ -6,9 +6,9 @@ data class User(
     val tag: String,
     val github: String?,
     val flags: Int,
-    val bots: List<UserBot>
+    val bots: List<OwnedBot>
 ) {
-    data class UserBot(
+    data class OwnedBot(
         val id: String,
         val name: String,
         val tag: String,
