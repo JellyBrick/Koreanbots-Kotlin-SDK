@@ -22,7 +22,7 @@ dependencies {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.useIR = true
-    kotlinOptions.jvmTarget = JavaVersion.VERSION_1_7.toString() // Jackson jvmTarget = JavaVersion.VERSION_1_7
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_1_6.toString() // Jackson jvmTarget = JavaVersion.VERSION_1_7
 }
 val githubRepo = project.property("github.repo") as String
 
