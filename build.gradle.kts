@@ -65,6 +65,7 @@ publishing {
     }
     publications {
         register<MavenPublication>("KoreanBots") {
+            artifactId = "koreanbots"
             from(components["java"])
             artifact(sourcesJar)
         }
