@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.4.32"
+    kotlin("jvm") version "1.5.0"
     id("org.jmailen.kotlinter") version "3.4.3"
     `maven-publish`
 }
@@ -14,14 +14,15 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
 
-    implementation("com.github.kittinunf.fuel:fuel:2.3.1")
-    implementation("com.github.kittinunf.fuel:fuel-jackson:2.3.1")
+    implementation(group = "com.github.kittinunf.fuel", name = "fuel", version = "2.3.1")
+    implementation(group = "com.github.kittinunf.fuel", name = "fuel-jackson", version = "2.3.1")
 
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.11.2")
+    implementation(group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version = "2.11.2")
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.useIR = true
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_1_7.toString() // Jackson jvmTarget = JavaVersion.VERSION_1_7
 }
 
 val writeVersion by tasks.registering {
