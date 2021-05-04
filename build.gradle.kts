@@ -24,10 +24,11 @@ tasks.withType<KotlinCompile> {
     kotlinOptions.useIR = true
     kotlinOptions.jvmTarget = JavaVersion.VERSION_1_7.toString() // Jackson jvmTarget = JavaVersion.VERSION_1_7
 }
+val githubRepo = project.property("github.repo") as String
 
 val writeVersion by tasks.registering {
     val apiBaseUrl = project.property("api.base.url") as String
-    val githubUrl = project.property("github.url") as String
+    val githubUrl = "https://github.com/$githubRepo"
     val group = project.group as String
     val version = project.version as String
 
@@ -52,6 +53,16 @@ val sourcesJar by tasks.registering(Jar::class) {
 }
 
 publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/$githubRepo")
+            credentials {
+                username = project.findProperty("gpr.user") as String? ?: System.getenv("GH_USERNAME")
+                password = project.findProperty("gpr.key") as String? ?: System.getenv("GH_TOKEN")
+            }
+        }
+    }
     publications {
         register<MavenPublication>("KoreanBots") {
             from(components["java"])
