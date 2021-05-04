@@ -79,7 +79,7 @@ data class Bot(
         PREMIUM(1 shl 5, "프리미엄"),
         FIRST_HACKATON_WINNER(1 shl 6, "제1회 한국 디스코드봇 리스트 해커톤 우승자 봇");
     }
-
+  
     data class BotOwner(
         val id: String,
         val username: String,
