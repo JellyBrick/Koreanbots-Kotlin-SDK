@@ -64,6 +64,31 @@ class KoreanBots @JvmOverloads constructor(
         ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
 
     /**
+     * [Bot] 봇 정보를 비동기적으로 받아옵니다.
+     * @param id 봇의 ID 입니다.
+     * @param onSuccess 요청이 성공한 경우 호출됩니다.
+     */
+    fun getBotInfo(id: String, onSuccess: (Bot) -> Unit) {
+        getBotInfo(id, onSuccess, null)
+    }
+
+    /**
+     * [Bot] 봇 정보를 비동기적으로 받아옵니다.
+     * @param id 봇의 ID 입니다.
+     * @param onSuccess 요청이 성공한 경우 호출됩니다.
+     * @param onFailure 요청이 실패한 경우 호출됩니다.
+     */
+    fun getBotInfo(id: String, onSuccess: (Bot) -> Unit, onFailure: ((Throwable) -> Unit)?) {
+        fuelManager
+            .get("/bots/$id")
+            .responseObject<ResponseWrapper<Bot>>(mapper = mapper) { _, _, result ->
+                runCatching { handleResponse(result) }
+                    .mapCatching { onSuccess.invoke(it ?: throw AssertionError("Request Success, but Data Doesn't Exist")) }
+                    .getOrElse { onFailure?.invoke(it) }
+            }
+    }
+
+    /**
      * 봇 서버 수를 업데이트합니다.
      * @param id 봇의 ID 입니다.
      * @param servers 서버 수 입니다.
@@ -85,6 +110,34 @@ class KoreanBots @JvmOverloads constructor(
     }
 
     /**
+     * 봇 서버 수를 비동기적으로 업데이트합니다.
+     * @param id 봇의 ID 입니다.
+     * @param servers 서버 수 입니다.
+     * @param onSuccess 요청이 성공한 경우 호출됩니다.
+     */
+    fun updateBotServers(id: String, servers: Int, onSuccess: () -> Unit) {
+        updateBotServers(id, servers, onSuccess, null)
+    }
+
+    /**
+     * [Bot] 봇 정보를 비동기적으로 받아옵니다.
+     * @param id 봇의 ID 입니다.
+     * @param onSuccess 요청이 성공한 경우 호출됩니다.
+     * @param onFailure 요청이 실패한 경우 호출됩니다.
+     */
+    fun updateBotServers(id: String, servers: Int, onSuccess: () -> Unit, onFailure: ((Throwable) -> Unit)?) {
+        fuelManager
+            .post("/bots/$id/stats")
+            .header(Headers.AUTHORIZATION, token)
+            .objectBody(ServersUpdate(servers), mapper = mapper)
+            .responseObject<ResponseWrapper<Unit>>(mapper = mapper) { _, _, result ->
+                runCatching { handleResponse(result) }
+                    .mapCatching { onSuccess.invoke() }
+                    .getOrElse { onFailure?.invoke(it) }
+            }
+    }
+
+    /**
      * [User] 유저 정보를 받아옵니다.
      * @param id 유저의 ID 입니다.
      *
@@ -100,6 +153,32 @@ class KoreanBots @JvmOverloads constructor(
             .third
     )
         ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
+
+    /**
+     * [User] 유저 정보를 비동기적으로 받아옵니다.
+     * @param id 유저의 ID 입니다.
+     * @param onSuccess 요청이 성공한 경우 호출됩니다.
+     */
+    fun getUserInfo(id: String, onSuccess: (User) -> Unit) {
+        getUserInfo(id, onSuccess, null)
+    }
+
+    /**
+     * [User] 유저 정보를 비동기적으로 받아옵니다.
+     * @param id 유저의 ID 입니다.
+     * @param onSuccess 요청이 성공한 경우 호출됩니다.
+     * @param onFailure 요청이 실패한 경우 호출됩니다.
+     */
+    fun getUserInfo(id: String, onSuccess: (User) -> Unit, onFailure: ((Throwable) -> Unit)?) {
+        fuelManager
+            .get("/users/$id")
+            .header(Headers.AUTHORIZATION, token)
+            .responseObject<ResponseWrapper<User>>(mapper = mapper) { _, _, result ->
+                runCatching { handleResponse(result) }
+                    .mapCatching { onSuccess.invoke(it ?: throw AssertionError("Request Success, but Data Doesn't Exist")) }
+                    .getOrElse { onFailure?.invoke(it) }
+            }
+    }
 
     private fun <T> handleResponse(result: Result<ResponseWrapper<T>, FuelError>): T? =
         result.getOrElse { throw RequestFailedException(it.message) }
