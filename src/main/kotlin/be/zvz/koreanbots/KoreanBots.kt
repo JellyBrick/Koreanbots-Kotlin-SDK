@@ -51,12 +51,11 @@ class KoreanBots @JvmOverloads constructor(
      * @param id 봇의 ID 입니다.
      *
      * @throws [RequestFailedException] 요청이 실패한 경우 [RequestFailedException]을 던집니다.
-     * @throws [AssertionError] 요청이 성공했지만 아무 응답도 반환하지 않은 경우 [AssertionError]을 던집니다.
      *
      * @return [Bot] 봇 정보를 반환합니다.
      */
-    @Throws(RequestFailedException::class, AssertionError::class)
-    fun getBotInfo(id: String) = handleResponse(
+    @Throws(RequestFailedException::class)
+    fun getBotInfo(id: String): Bot = handleResponse(
         fuelManager
             .get("/bots/$id")
             .responseObject<ResponseWrapper<Bot>>(mapper = mapper)
@@ -73,6 +72,7 @@ class KoreanBots @JvmOverloads constructor(
      *
      * @return [Bot] 봇 정보를 반환합니다.
      */
+    @Throws(RequestFailedException::class)
     fun updateBotServers(id: String, servers: Int) {
         handleResponse(
             fuelManager
@@ -89,12 +89,11 @@ class KoreanBots @JvmOverloads constructor(
      * @param id 유저의 ID 입니다.
      *
      * @throws [RequestFailedException] 요청이 실패한 경우 [RequestFailedException]을 던집니다.
-     * @throws [AssertionError] 요청이 성공했지만 아무 응답도 반환하지 않은 경우 [AssertionError]을 던집니다.
      *
      * @return [User] 유저 정보를 반환합니다.
      */
-    @Throws(RequestFailedException::class, AssertionError::class)
-    fun getUserInfo(id: String) = handleResponse(
+    @Throws(RequestFailedException::class)
+    fun getUserInfo(id: String): User = handleResponse(
         fuelManager
             .get("/users/$id")
             .responseObject<ResponseWrapper<User>>(mapper = mapper)
@@ -103,7 +102,7 @@ class KoreanBots @JvmOverloads constructor(
         ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
 
     private fun <T> handleResponse(result: Result<ResponseWrapper<T>, FuelError>): T? =
-        result.getOrElse { throw RequestFailedException(it.message.orEmpty()) }
+        result.getOrElse { throw RequestFailedException(it.message) }
             .apply {
                 if (this.code !in 200..299)
                     throw RequestFailedException("API responded ${this.code}: ${this.message}")
