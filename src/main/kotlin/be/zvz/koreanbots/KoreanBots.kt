@@ -14,10 +14,7 @@
  */
 package be.zvz.koreanbots
 
-import be.zvz.koreanbots.dto.Bot
-import be.zvz.koreanbots.dto.ResponseWrapper
-import be.zvz.koreanbots.dto.ServersUpdate
-import be.zvz.koreanbots.dto.User
+import be.zvz.koreanbots.dto.*
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -74,6 +71,44 @@ class KoreanBots @JvmOverloads constructor(
         fuelManager
             .get("/bots/$id")
             .responseObject<ResponseWrapper<Bot>>(mapper = mapper) { _, _, result ->
+                runCatching { handleResponse(result) }
+                    .mapCatching { onSuccess.invoke(it ?: throw AssertionError("Request Success, but Data Doesn't Exist")) }
+                    .getOrElse { onFailure?.invoke(it) }
+            }
+    }
+
+    /**
+     * 유저가 봇을 투표했는지 확인합니다.
+     * @param id 봇의 ID 입니다.
+     * @param userId 유저의 ID 입니다.
+     *
+     * @throws [RequestFailedException] 요청이 실패한 경우 [RequestFailedException]을 던집니다.
+     *
+     * @return [Bot] 봇 정보를 반환합니다.
+     */
+    @Throws(RequestFailedException::class)
+    fun checkUserVote(id: String, userId: String): Voted = handleResponse(
+        fuelManager
+            .get("/bots/$id/vote", listOf("userID" to userId))
+            .header(Headers.AUTHORIZATION, token)
+            .responseObject<ResponseWrapper<Voted>>(mapper = mapper)
+            .third
+    )
+        ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
+
+    /**
+     * 유저가 봇을 투표했는지 비동기적으로 확인합니다.
+     * @param id 봇의 ID 입니다.
+     * @param userId 유저의 ID 입니다.
+     * @param onSuccess 요청이 성공한 경우 호출됩니다.
+     * @param onFailure 요청이 실패한 경우 호출됩니다. null인 경우 아무 동작도 하지 않습니다. 기본값은 null입니다.
+     */
+    @JvmOverloads
+    fun checkUserVote(id: String, userId: String, onSuccess: (Voted) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
+        fuelManager
+            .get("/bots/$id/vote", listOf("userID" to userId))
+            .header(Headers.AUTHORIZATION, token)
+            .responseObject<ResponseWrapper<Voted>>(mapper = mapper) { _, _, result ->
                 runCatching { handleResponse(result) }
                     .mapCatching { onSuccess.invoke(it ?: throw AssertionError("Request Success, but Data Doesn't Exist")) }
                     .getOrElse { onFailure?.invoke(it) }
