@@ -14,7 +14,11 @@
  */
 package be.zvz.koreanbots
 
-import be.zvz.koreanbots.dto.*
+import be.zvz.koreanbots.dto.Bot
+import be.zvz.koreanbots.dto.ResponseWrapper
+import be.zvz.koreanbots.dto.ServersUpdate
+import be.zvz.koreanbots.dto.User
+import be.zvz.koreanbots.dto.Voted
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
