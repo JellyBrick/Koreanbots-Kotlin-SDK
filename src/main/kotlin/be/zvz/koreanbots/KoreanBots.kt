@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.json.JsonMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.github.kittinunf.fuel.core.FuelError
 import com.github.kittinunf.fuel.core.FuelManager
@@ -196,7 +197,7 @@ class KoreanBots @JvmOverloads constructor(
 
     private fun <T> handleResponse(result: Result<ResponseWrapper<T>, FuelError>): T? =
         result.getOrElse {
-            throw RequestFailedException(it.message)
+            throw mapper.readValue<RequestFailedException>(it.errorData)
         }
             .data
 }

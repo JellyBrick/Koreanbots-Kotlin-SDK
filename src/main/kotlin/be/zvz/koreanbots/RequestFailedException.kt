@@ -1,3 +1,8 @@
 package be.zvz.koreanbots
 
-class RequestFailedException(message: String?) : RuntimeException(message)
+data class RequestFailedException(
+    override val message: String,
+    val errors: List<String>?,
+    val code: Int,
+    val version: Int
+) : RuntimeException()
