@@ -18,10 +18,12 @@ import be.zvz.koreanbots.dto.Bot
 import be.zvz.koreanbots.dto.ResponseWrapper
 import be.zvz.koreanbots.dto.ServersUpdate
 import be.zvz.koreanbots.dto.User
+import be.zvz.koreanbots.dto.Voted
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.json.JsonMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.github.kittinunf.fuel.core.FuelError
 import com.github.kittinunf.fuel.core.FuelManager
@@ -57,7 +59,7 @@ class KoreanBots @JvmOverloads constructor(
     @Throws(RequestFailedException::class)
     fun getBotInfo(id: String): Bot = handleResponse(
         fuelManager
-            .get("/bots/$id")
+            .get("/v2/bots/$id")
             .responseObject<ResponseWrapper<Bot>>(mapper = mapper)
             .third
     )
@@ -72,8 +74,46 @@ class KoreanBots @JvmOverloads constructor(
     @JvmOverloads
     fun getBotInfo(id: String, onSuccess: (Bot) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
         fuelManager
-            .get("/bots/$id")
+            .get("/v2/bots/$id")
             .responseObject<ResponseWrapper<Bot>>(mapper = mapper) { _, _, result ->
+                runCatching { handleResponse(result) }
+                    .mapCatching { onSuccess.invoke(it ?: throw AssertionError("Request Success, but Data Doesn't Exist")) }
+                    .getOrElse { onFailure?.invoke(it) }
+            }
+    }
+
+    /**
+     * 유저가 봇을 투표했는지 확인합니다.
+     * @param id 봇의 ID 입니다.
+     * @param userId 유저의 ID 입니다.
+     *
+     * @throws [RequestFailedException] 요청이 실패한 경우 [RequestFailedException]을 던집니다.
+     *
+     * @return [Bot] 봇 정보를 반환합니다.
+     */
+    @Throws(RequestFailedException::class)
+    fun checkUserVote(id: String, userId: String): Voted = handleResponse(
+        fuelManager
+            .get("/v2/bots/$id/vote", listOf("userID" to userId))
+            .header(Headers.AUTHORIZATION, token)
+            .responseObject<ResponseWrapper<Voted>>(mapper = mapper)
+            .third
+    )
+        ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
+
+    /**
+     * 유저가 봇을 투표했는지 비동기적으로 확인합니다.
+     * @param id 봇의 ID 입니다.
+     * @param userId 유저의 ID 입니다.
+     * @param onSuccess 요청이 성공한 경우 호출됩니다.
+     * @param onFailure 요청이 실패한 경우 호출됩니다. null인 경우 아무 동작도 하지 않습니다. 기본값은 null입니다.
+     */
+    @JvmOverloads
+    fun checkUserVote(id: String, userId: String, onSuccess: (Voted) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
+        fuelManager
+            .get("/v2/bots/$id/vote", listOf("userID" to userId))
+            .header(Headers.AUTHORIZATION, token)
+            .responseObject<ResponseWrapper<Voted>>(mapper = mapper) { _, _, result ->
                 runCatching { handleResponse(result) }
                     .mapCatching { onSuccess.invoke(it ?: throw AssertionError("Request Success, but Data Doesn't Exist")) }
                     .getOrElse { onFailure?.invoke(it) }
@@ -93,7 +133,7 @@ class KoreanBots @JvmOverloads constructor(
     fun updateBotServers(id: String, servers: Int) {
         handleResponse(
             fuelManager
-                .post("/bots/$id/stats")
+                .post("/v2/bots/$id/stats")
                 .header(Headers.AUTHORIZATION, token)
                 .objectBody(ServersUpdate(servers), mapper = mapper)
                 .responseObject<ResponseWrapper<Unit>>(mapper = mapper)
@@ -110,7 +150,7 @@ class KoreanBots @JvmOverloads constructor(
     @JvmOverloads
     fun updateBotServers(id: String, servers: Int, onSuccess: () -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
         fuelManager
-            .post("/bots/$id/stats")
+            .post("/v2/bots/$id/stats")
             .header(Headers.AUTHORIZATION, token)
             .objectBody(ServersUpdate(servers), mapper = mapper)
             .responseObject<ResponseWrapper<Unit>>(mapper = mapper) { _, _, result ->
@@ -131,7 +171,7 @@ class KoreanBots @JvmOverloads constructor(
     @Throws(RequestFailedException::class)
     fun getUserInfo(id: String): User = handleResponse(
         fuelManager
-            .get("/users/$id")
+            .get("/v2/users/$id")
             .responseObject<ResponseWrapper<User>>(mapper = mapper)
             .third
     )
@@ -146,7 +186,7 @@ class KoreanBots @JvmOverloads constructor(
     @JvmOverloads
     fun getUserInfo(id: String, onSuccess: (User) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
         fuelManager
-            .get("/users/$id")
+            .get("/v2/users/$id")
             .header(Headers.AUTHORIZATION, token)
             .responseObject<ResponseWrapper<User>>(mapper = mapper) { _, _, result ->
                 runCatching { handleResponse(result) }
@@ -156,10 +196,8 @@ class KoreanBots @JvmOverloads constructor(
     }
 
     private fun <T> handleResponse(result: Result<ResponseWrapper<T>, FuelError>): T? =
-        result.getOrElse { throw RequestFailedException(it.message) }
-            .apply {
-                if (this.code !in 200..299)
-                    throw RequestFailedException("API responded ${this.code}: ${this.message}")
-            }
+        result.getOrElse {
+            throw mapper.readValue<RequestFailedException>(it.errorData)
+        }
             .data
 }
