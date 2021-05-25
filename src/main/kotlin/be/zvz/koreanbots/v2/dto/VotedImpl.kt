@@ -1,6 +1,8 @@
 package be.zvz.koreanbots.v2.dto
 
+import be.zvz.koreanbots.dto.Voted
+
 data class VotedImpl(
-    val voted: Boolean,
-    val lastVote: Long
-) : be.zvz.koreanbots.dto.Voted()
+    override val voted: Boolean,
+    override val lastVote: Long
+) : Voted
