@@ -40,15 +40,20 @@ class KoreanBots @JvmOverloads constructor(
     private val adapter: ApiAdapter
 
     init {
-        fuelManager.basePath = KoreanBotsInfo.API_BASE_URL
         fuelManager.baseHeaders = mapOf(
             Headers.USER_AGENT to "Kotlin SDK(${KoreanBotsInfo.VERSION}, ${KoreanBotsInfo.GITHUB_URL})"
         )
 
         adapter = when (apiVersion) {
-            1 -> V1Adapter(botId, token, mapper, fuelManager)
-            2 -> V2Adapter(botId, token, mapper, fuelManager)
-            else -> throw IllegalArgumentException("Please Select Api Version between 1 to 2")
+            1 -> {
+                fuelManager.basePath = KoreanBotsInfo.API_v1_BASE_URL
+                V1Adapter(botId, token, mapper, fuelManager)
+            }
+            2 -> {
+                fuelManager.basePath = KoreanBotsInfo.API_v2_BASE_URL
+                V2Adapter(botId, token, mapper, fuelManager)
+            }
+            else -> throw IllegalArgumentException("Please Select API Version between 1 to 2")
         }
     }
 

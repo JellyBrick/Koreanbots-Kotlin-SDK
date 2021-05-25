@@ -1,3 +1,17 @@
+/*
+ * Copyright 2021 JellyBrick, nkgcp, and all its contributor. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
+ */
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -32,8 +46,10 @@ tasks.withType<JavaCompile> {
 
 val githubRepo = project.property("github.repo") as String
 
-val writeVersion by tasks.registering {
-    val apiBaseUrl = project.property("api.base.url") as String
+val writeInfo by tasks.registering {
+    val apiv1BaseUrl = project.property("api.v1.base.url") as String
+    val apiv2BaseUrl = project.property("api.v2.base.url") as String
+    val widgetBaseUrl = project.property("widget.base.url") as String
     val githubUrl = "https://github.com/$githubRepo"
     val group = project.group as String
     val version = project.version as String
@@ -42,7 +58,9 @@ val writeVersion by tasks.registering {
     val compiled = template
         .replace("__PACKAGE", group)
         .replace("__VERSION", version)
-        .replace("__API_BASE_URL", apiBaseUrl)
+        .replace("__API_v1_BASE_URL", apiv1BaseUrl)
+        .replace("__API_v2_BASE_URL", apiv2BaseUrl)
+        .replace("__WIDGET_BASE_URL", widgetBaseUrl)
         .replace("__GITHUB_URL", githubUrl)
 
     val dest = File(rootDir, "src/main/kotlin/${group.replace('.', '/')}/KoreanBotsInfo.kt")
@@ -50,7 +68,7 @@ val writeVersion by tasks.registering {
 }
 
 tasks.compileKotlin {
-    dependsOn(writeVersion)
+    dependsOn(writeInfo)
 }
 
 val sourcesJar by tasks.registering(Jar::class) {
