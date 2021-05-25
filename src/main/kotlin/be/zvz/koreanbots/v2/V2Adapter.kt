@@ -20,7 +20,6 @@ import be.zvz.koreanbots.dto.Bot
 import be.zvz.koreanbots.dto.User
 import be.zvz.koreanbots.dto.Voted
 import be.zvz.koreanbots.v2.dto.BotImpl
-import be.zvz.koreanbots.v2.dto.ResponseWrapper
 import be.zvz.koreanbots.v2.dto.UserImpl
 import be.zvz.koreanbots.v2.dto.VotedImpl
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -42,38 +41,38 @@ class V2Adapter internal constructor(
 
     override fun getBotInfo(targetBotId: String): Bot = handleResponse(
         fuelManager
-            .get("/v2/bots/$targetBotId")
+            .get("/bots/$targetBotId")
             .responseObject<ResponseWrapper<BotImpl>>(mapper = mapper)
             .third
     )
-        ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
+        .elseThrow()
 
     override fun getBotInfo(targetBotId: String, onSuccess: (Bot) -> Unit, onFailure: ((Throwable) -> Unit)?) {
         fuelManager
-            .get("/v2/bots/$targetBotId")
+            .get("/bots/$targetBotId")
             .responseObject<ResponseWrapper<BotImpl>>(mapper = mapper) { _, _, result ->
                 runCatching { handleResponse(result) }
-                    .mapCatching { onSuccess.invoke(it ?: throw AssertionError("Request Success, but Data Doesn't Exist")) }
+                    .mapCatching { onSuccess.invoke(it.elseThrow()) }
                     .getOrElse { onFailure?.invoke(it) }
             }
     }
 
     override fun checkUserVote(userId: String): Voted = handleResponse(
         fuelManager
-            .get("/v2/bots/$botId/vote", listOf("userID" to userId))
+            .get("/bots/$botId/vote", listOf("userID" to userId))
             .header(Headers.AUTHORIZATION, token)
             .responseObject<ResponseWrapper<VotedImpl>>(mapper = mapper)
             .third
     )
-        ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
+        .elseThrow()
 
     override fun checkUserVote(userId: String, onSuccess: (Voted) -> Unit, onFailure: ((Throwable) -> Unit)?) {
         fuelManager
-            .get("/v2/bots/$botId/vote", listOf("userID" to userId))
+            .get("/bots/$botId/vote", listOf("userID" to userId))
             .header(Headers.AUTHORIZATION, token)
             .responseObject<ResponseWrapper<VotedImpl>>(mapper = mapper) { _, _, result ->
                 runCatching { handleResponse(result) }
-                    .mapCatching { onSuccess.invoke(it ?: throw AssertionError("Request Success, but Data Doesn't Exist")) }
+                    .mapCatching { onSuccess.invoke(it.elseThrow()) }
                     .getOrElse { onFailure?.invoke(it) }
             }
     }
@@ -81,7 +80,7 @@ class V2Adapter internal constructor(
     override fun updateBotServers(servers: Int) {
         handleResponse(
             fuelManager
-                .post("/v2/bots/$botId/stats")
+                .post("/bots/$botId/stats")
                 .header(Headers.AUTHORIZATION, token)
                 .objectBody(mapOf("servers" to servers), mapper = mapper)
                 .responseObject<ResponseWrapper<Unit>>(mapper = mapper)
@@ -91,7 +90,7 @@ class V2Adapter internal constructor(
 
     override fun updateBotServers(servers: Int, onSuccess: () -> Unit, onFailure: ((Throwable) -> Unit)?) {
         fuelManager
-            .post("/v2/bots/$botId/stats")
+            .post("/bots/$botId/stats")
             .header(Headers.AUTHORIZATION, token)
             .objectBody(mapOf("servers" to servers), mapper = mapper)
             .responseObject<ResponseWrapper<Unit>>(mapper = mapper) { _, _, result ->
@@ -103,19 +102,19 @@ class V2Adapter internal constructor(
 
     override fun getUserInfo(userId: String): User = handleResponse(
         fuelManager
-            .get("/v2/users/$userId")
+            .get("/users/$userId")
             .responseObject<ResponseWrapper<UserImpl>>(mapper = mapper)
             .third
     )
-        ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
+        .elseThrow()
 
     override fun getUserInfo(userId: String, onSuccess: (User) -> Unit, onFailure: ((Throwable) -> Unit)?) {
         fuelManager
-            .get("/v2/users/$userId")
+            .get("/users/$userId")
             .header(Headers.AUTHORIZATION, token)
             .responseObject<ResponseWrapper<UserImpl>>(mapper = mapper) { _, _, result ->
                 runCatching { handleResponse(result) }
-                    .mapCatching { onSuccess.invoke(it ?: throw AssertionError("Request Success, but Data Doesn't Exist")) }
+                    .mapCatching { onSuccess.invoke(it.elseThrow()) }
                     .getOrElse { onFailure?.invoke(it) }
             }
     }
@@ -126,14 +125,5 @@ class V2Adapter internal constructor(
         }
             .data
 
-    // /////////////////////////////
-    //   Unsupported Functions   //
-    // /////////////////////////////
-    override fun getBotList(page: Int): List<Bot> {
-        throw UnsupportedOperationException("Only Supported on API v1")
-    }
-
-    override fun getBotList(page: Int, onSuccess: (List<Bot>) -> Unit, onFailure: ((Throwable) -> Unit)?) {
-        throw UnsupportedOperationException("Only Supported on API v1")
-    }
+    private fun <T> T?.elseThrow(): T = this ?: throw AssertionError("Request Success, but Data Doesn't Exist")
 }

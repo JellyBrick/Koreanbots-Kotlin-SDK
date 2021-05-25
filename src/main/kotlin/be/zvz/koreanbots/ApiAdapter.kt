@@ -19,9 +19,7 @@ import be.zvz.koreanbots.dto.User
 import be.zvz.koreanbots.dto.Voted
 
 internal interface ApiAdapter {
-    fun getBotList(page: Int): List<Bot>
-    fun getBotList(page: Int, onSuccess: (List<Bot>) -> Unit, onFailure: ((Throwable) -> Unit)?)
-
+    // Common Feature
     fun getBotInfo(targetBotId: String): Bot
     fun getBotInfo(targetBotId: String, onSuccess: (Bot) -> Unit, onFailure: ((Throwable) -> Unit)?)
 
@@ -31,6 +29,19 @@ internal interface ApiAdapter {
     fun updateBotServers(servers: Int)
     fun updateBotServers(servers: Int, onSuccess: () -> Unit, onFailure: ((Throwable) -> Unit)?)
 
-    fun getUserInfo(userId: String): User
-    fun getUserInfo(userId: String, onSuccess: (User) -> Unit, onFailure: ((Throwable) -> Unit)?)
+    // API v1 Only
+    fun getBotList(page: Int): List<Bot> {
+        throw UnsupportedOperationException("Only Supported on API v1")
+    }
+    fun getBotList(page: Int, onSuccess: (List<Bot>) -> Unit, onFailure: ((Throwable) -> Unit)?) {
+        throw UnsupportedOperationException("Only Supported on API v1")
+    }
+
+    // API v2 Only
+    fun getUserInfo(userId: String): User {
+        throw UnsupportedOperationException("Only Supported on API v2")
+    }
+    fun getUserInfo(userId: String, onSuccess: (User) -> Unit, onFailure: ((Throwable) -> Unit)?) {
+        throw UnsupportedOperationException("Only Supported on API v2")
+    }
 }
