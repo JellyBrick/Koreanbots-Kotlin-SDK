@@ -58,7 +58,7 @@ class KoreanBots @JvmOverloads constructor(
     }
 
     /**
-     * [Bot] 한국 디스코드봇 리스트에 등록된 봇 목록을 받아옵니다.
+     * [Bot] 한국 디스코드봇 리스트에 등록된 봇 목록을 받아옵니다. API v1에서만 지원합니다.
      * @param page 봇 목록의 페이지입니다.
      * @throws [RequestFailedException] 요청이 실패한 경우 [RequestFailedException]을 던집니다.
      * @return [Bot] 봇 목록을 반환합니다.
@@ -68,7 +68,7 @@ class KoreanBots @JvmOverloads constructor(
         adapter.getBotList(page)
 
     /**
-     * [Bot] 한국 디스코드봇 리스트에 등록된 봇 목록을 비동기적으로 받아옵니다.
+     * [Bot] 한국 디스코드봇 리스트에 등록된 봇 목록을 비동기적으로 받아옵니다. API v1에서만 지원합니다.
      * @param page 봇 목록의 페이지입니다.
      * @param onSuccess 요청이 성공한 경우 호출됩니다.
      * @param onFailure 요청이 실패한 경우 호출됩니다. null인 경우 아무 동작도 하지 않습니다. 기본값은 null입니다.
@@ -138,7 +138,7 @@ class KoreanBots @JvmOverloads constructor(
         adapter.updateBotServers(servers, onSuccess, onFailure)
 
     /**
-     * [User] 유저 정보를 받아옵니다.
+     * [User] 유저 정보를 받아옵니다. API v2에서만 지원합니다.
      * @param userId 받아올 유저의 ID 입니다.
      * @throws [RequestFailedException] 요청이 실패한 경우 [RequestFailedException]을 던집니다.
      * @return [User] 유저 정보를 반환합니다.
@@ -148,7 +148,7 @@ class KoreanBots @JvmOverloads constructor(
         adapter.getUserInfo(userId)
 
     /**
-     * [User] 유저 정보를 비동기적으로 받아옵니다.
+     * [User] 유저 정보를 비동기적으로 받아옵니다. API v2에서만 지원합니다.
      * @param userId 받아올 유저의 ID 입니다.
      * @param onSuccess 요청이 성공한 경우 호출됩니다.
      * @param onFailure 요청이 실패한 경우 호출됩니다. null인 경우 아무 동작도 하지 않습니다. 기본값은 null입니다.
