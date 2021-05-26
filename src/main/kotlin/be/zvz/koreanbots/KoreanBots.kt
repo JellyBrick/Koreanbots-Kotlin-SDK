@@ -17,6 +17,8 @@ package be.zvz.koreanbots
 import be.zvz.koreanbots.dto.Bot
 import be.zvz.koreanbots.dto.User
 import be.zvz.koreanbots.dto.Voted
+import be.zvz.koreanbots.exception.InvalidDataReceivedException
+import be.zvz.koreanbots.exception.RequestFailedException
 import be.zvz.koreanbots.v1.V1Adapter
 import be.zvz.koreanbots.v2.V2Adapter
 import com.fasterxml.jackson.databind.DeserializationFeature
@@ -61,9 +63,10 @@ class KoreanBots @JvmOverloads constructor(
      * [Bot] 한국 디스코드봇 리스트에 등록된 봇 목록을 받아옵니다. API v1에서만 지원합니다.
      * @param page 봇 목록의 페이지입니다.
      * @throws [RequestFailedException] 요청이 실패한 경우 [RequestFailedException]을 던집니다.
+     * @throws [InvalidDataReceivedException] 요청이 성공했으나, 응답받은 객체에 문제가 있을 경우 [InvalidDataReceivedException]을 던집니다.
      * @return [Bot] 봇 목록을 반환합니다.
      */
-    @Throws(RequestFailedException::class)
+    @Throws(RequestFailedException::class, InvalidDataReceivedException::class)
     fun getBotList(page: Int): List<Bot> =
         adapter.getBotList(page)
 
@@ -81,9 +84,10 @@ class KoreanBots @JvmOverloads constructor(
      * [Bot] 봇 정보를 받아옵니다.
      * @param targetBotId 받아올 봇의 ID 입니다.
      * @throws [RequestFailedException] 요청이 실패한 경우 [RequestFailedException]을 던집니다.
+     * @throws [InvalidDataReceivedException] 요청이 성공했으나, 응답받은 객체에 문제가 있을 경우 [InvalidDataReceivedException]을 던집니다.
      * @return [Bot] 봇 정보를 반환합니다.
      */
-    @Throws(RequestFailedException::class)
+    @Throws(RequestFailedException::class, InvalidDataReceivedException::class)
     fun getBotInfo(targetBotId: String): Bot =
         adapter.getBotInfo(targetBotId)
 
@@ -101,9 +105,10 @@ class KoreanBots @JvmOverloads constructor(
      * 유저가 봇을 투표했는지 확인합니다.
      * @param userId 확인할 유저의 ID 입니다.
      * @throws [RequestFailedException] 요청이 실패한 경우 [RequestFailedException]을 던집니다.
+     * @throws [InvalidDataReceivedException] 요청이 성공했으나, 응답받은 객체에 문제가 있을 경우 [InvalidDataReceivedException]을 던집니다.
      * @return [Bot] 봇 정보를 반환합니다.
      */
-    @Throws(RequestFailedException::class)
+    @Throws(RequestFailedException::class, InvalidDataReceivedException::class)
     fun checkUserVote(userId: String): Voted =
         adapter.checkUserVote(userId)
 
@@ -121,9 +126,10 @@ class KoreanBots @JvmOverloads constructor(
      * 봇 서버 수를 업데이트합니다.
      * @param servers 현재 이 봇이 참가한 서버의 수 입니다.
      * @throws [RequestFailedException] 요청이 실패한 경우 [RequestFailedException]을 던집니다.
+     * @throws [InvalidDataReceivedException] 요청이 성공했으나, 응답받은 객체에 문제가 있을 경우 [InvalidDataReceivedException]을 던집니다.
      * @return [Bot] 봇 정보를 반환합니다.
      */
-    @Throws(RequestFailedException::class)
+    @Throws(RequestFailedException::class, InvalidDataReceivedException::class)
     fun updateBotServers(servers: Int) =
         adapter.updateBotServers(servers)
 
@@ -141,9 +147,10 @@ class KoreanBots @JvmOverloads constructor(
      * [User] 유저 정보를 받아옵니다. API v2에서만 지원합니다.
      * @param userId 받아올 유저의 ID 입니다.
      * @throws [RequestFailedException] 요청이 실패한 경우 [RequestFailedException]을 던집니다.
+     * @throws [InvalidDataReceivedException] 요청이 성공했으나, 응답받은 객체에 문제가 있을 경우 [InvalidDataReceivedException]을 던집니다.
      * @return [User] 유저 정보를 반환합니다.
      */
-    @Throws(RequestFailedException::class)
+    @Throws(RequestFailedException::class, InvalidDataReceivedException::class)
     fun getUserInfo(userId: String): User =
         adapter.getUserInfo(userId)
 

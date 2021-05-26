@@ -15,10 +15,11 @@
 package be.zvz.koreanbots.v2
 
 import be.zvz.koreanbots.ApiAdapter
-import be.zvz.koreanbots.RequestFailedException
 import be.zvz.koreanbots.dto.Bot
 import be.zvz.koreanbots.dto.User
 import be.zvz.koreanbots.dto.Voted
+import be.zvz.koreanbots.exception.InvalidDataReceivedException
+import be.zvz.koreanbots.exception.RequestFailedException
 import be.zvz.koreanbots.v2.dto.BotImpl
 import be.zvz.koreanbots.v2.dto.UserImpl
 import be.zvz.koreanbots.v2.dto.VotedImpl
@@ -125,5 +126,5 @@ class V2Adapter internal constructor(
         }
             .data
 
-    private fun <T> T?.elseThrow(): T = this ?: throw AssertionError("Request Success, but Data Doesn't Exist")
+    private fun <T> T?.elseThrow(): T = this ?: throw InvalidDataReceivedException("Request Success, but Data Doesn't Exist")
 }
