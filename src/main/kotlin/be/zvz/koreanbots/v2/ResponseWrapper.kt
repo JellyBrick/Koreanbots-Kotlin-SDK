@@ -1,4 +1,4 @@
-package be.zvz.koreanbots.dto
+package be.zvz.koreanbots.v2
 
 data class ResponseWrapper<T> (
     val code: Int,
