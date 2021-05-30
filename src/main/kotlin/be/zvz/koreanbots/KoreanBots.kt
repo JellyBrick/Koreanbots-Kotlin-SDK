@@ -17,7 +17,6 @@ package be.zvz.koreanbots
 import be.zvz.koreanbots.dto.Bot
 import be.zvz.koreanbots.dto.ResponseWrapper
 import be.zvz.koreanbots.dto.SearchResult
-import be.zvz.koreanbots.dto.ServersUpdate
 import be.zvz.koreanbots.dto.User
 import be.zvz.koreanbots.dto.Voted
 import com.fasterxml.jackson.databind.DeserializationFeature
@@ -216,16 +215,16 @@ class KoreanBots @JvmOverloads constructor(
 
     /**
      * 봇 서버 수를 업데이트합니다.
-     * @param servers 현재 서버 수
+     * @param count 현재 서버 수
      * @throws [RequestFailedException] 요청이 실패한 경우
      */
     @Throws(RequestFailedException::class)
-    fun updateBotServers(servers: Int) {
+    fun updateServerCount(count: Int) {
         handleResponse(
             fuelManager
                 .post("/v2/bots/$botId/stats")
                 .header(Headers.AUTHORIZATION, token)
-                .objectBody(ServersUpdate(servers), mapper = mapper)
+                .objectBody(mapOf("servers" to count), mapper = mapper)
                 .responseObject<ResponseWrapper<Unit>>(mapper = mapper)
                 .third
         )
@@ -233,16 +232,16 @@ class KoreanBots @JvmOverloads constructor(
 
     /**
      * 봇 서버 수를 업데이트합니다.
-     * @param servers 현재 서버 수
+     * @param count 현재 서버 수
      * @param onSuccess 요청이 성공한 경우 호출될 콜백 함수
      * @param onFailure 요청이 실패한 경우 호출될 콜백 함수(기본값: null, 아무 동작도 하지 않음)
      */
     @JvmOverloads
-    fun updateBotServers(servers: Int, onSuccess: () -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
+    fun updateServerCount(count: Int, onSuccess: () -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
         fuelManager
             .post("/v2/bots/$botId/stats")
             .header(Headers.AUTHORIZATION, token)
-            .objectBody(ServersUpdate(servers), mapper = mapper)
+            .objectBody(mapOf("servers" to count), mapper = mapper)
             .responseObject<ResponseWrapper<Unit>>(mapper = mapper) { _, _, result ->
                 runCatching { handleResponse(result) }
                     .mapCatching { onSuccess.invoke() }
