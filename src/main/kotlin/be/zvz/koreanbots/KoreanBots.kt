@@ -16,6 +16,7 @@ package be.zvz.koreanbots
 
 import be.zvz.koreanbots.dto.Bot
 import be.zvz.koreanbots.dto.ResponseWrapper
+import be.zvz.koreanbots.dto.SearchResult
 import be.zvz.koreanbots.dto.ServersUpdate
 import be.zvz.koreanbots.dto.User
 import be.zvz.koreanbots.dto.Voted
@@ -76,6 +77,68 @@ class KoreanBots @JvmOverloads constructor(
         fuelManager
             .get("/v2/bots/$id")
             .responseObject<ResponseWrapper<Bot>>(mapper = mapper) { _, _, result ->
+                runCatching { handleResponse(result) }
+                    .mapCatching { onSuccess.invoke(it ?: throw AssertionError("Request Success, but Data Doesn't Exist")) }
+                    .getOrElse { onFailure?.invoke(it) }
+            }
+    }
+
+    @JvmOverloads
+    @Throws(RequestFailedException::class)
+    fun searchBots(query: String, page: Int = 1): SearchResult = handleResponse(
+        fuelManager
+            .get("/v2/search/bots", listOf("query" to query, "page" to page))
+            .responseObject<ResponseWrapper<SearchResult>>(mapper = mapper)
+            .third
+    )
+        ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
+
+    @JvmOverloads
+    fun searchBots(query: String, page: Int = 1, onSuccess: (SearchResult) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
+        fuelManager
+            .get("/v2/search/bots", listOf("query" to query, "page" to page))
+            .responseObject<ResponseWrapper<SearchResult>>(mapper = mapper) { _, _, result ->
+                runCatching { handleResponse(result) }
+                    .mapCatching { onSuccess.invoke(it ?: throw AssertionError("Request Success, but Data Doesn't Exist")) }
+                    .getOrElse { onFailure?.invoke(it) }
+            }
+    }
+
+    @JvmOverloads
+    @Throws(RequestFailedException::class)
+    fun getHeartRanking(page: Int = 1): SearchResult = handleResponse(
+        fuelManager
+            .get("/v2/list/bots/votes", listOf("page" to page))
+            .responseObject<ResponseWrapper<SearchResult>>(mapper = mapper)
+            .third
+    )
+        ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
+
+    @JvmOverloads
+    fun getHeartRanking(page: Int = 1, onSuccess: (SearchResult) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
+        fuelManager
+            .get("/v2/list/bots/votes", listOf("page" to page))
+            .responseObject<ResponseWrapper<SearchResult>>(mapper = mapper) { _, _, result ->
+                runCatching { handleResponse(result) }
+                    .mapCatching { onSuccess.invoke(it ?: throw AssertionError("Request Success, but Data Doesn't Exist")) }
+                    .getOrElse { onFailure?.invoke(it) }
+            }
+    }
+
+    @Throws(RequestFailedException::class)
+    fun getNewBots(): SearchResult = handleResponse(
+        fuelManager
+            .get("/v2/list/bots/new")
+            .responseObject<ResponseWrapper<SearchResult>>(mapper = mapper)
+            .third
+    )
+        ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
+
+    @JvmOverloads
+    fun getNewBots(onSuccess: (SearchResult) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
+        fuelManager
+            .get("/v2/list/bots/new")
+            .responseObject<ResponseWrapper<SearchResult>>(mapper = mapper) { _, _, result ->
                 runCatching { handleResponse(result) }
                     .mapCatching { onSuccess.invoke(it ?: throw AssertionError("Request Success, but Data Doesn't Exist")) }
                     .getOrElse { onFailure?.invoke(it) }
