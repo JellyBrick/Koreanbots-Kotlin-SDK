@@ -19,6 +19,10 @@ import be.zvz.koreanbots.dto.ResponseWrapper
 import be.zvz.koreanbots.dto.SearchResult
 import be.zvz.koreanbots.dto.User
 import be.zvz.koreanbots.dto.Voted
+import be.zvz.koreanbots.exception.InvalidDataReceivedException
+import be.zvz.koreanbots.exception.NoDataReceivedException
+import be.zvz.koreanbots.exception.RequestFailedException
+import com.fasterxml.jackson.core.JacksonException
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -56,13 +60,12 @@ class KoreanBots @JvmOverloads constructor(
      * @return [Bot] 인스턴스
      */
     @Throws(RequestFailedException::class)
-    fun getBotInfo(targetId: String): Bot = handleResponse(
+    fun getBotInfo(targetId: String): Bot = handleResponseOrThrow(
         fuelManager
             .get("/v2/bots/$targetId")
             .responseObject<ResponseWrapper<Bot>>(mapper = mapper)
             .third
     )
-        ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
 
     /**
      * 봇 정보를 받아옵니다.
@@ -75,8 +78,8 @@ class KoreanBots @JvmOverloads constructor(
         fuelManager
             .get("/v2/bots/$targetId")
             .responseObject<ResponseWrapper<Bot>>(mapper = mapper) { _, _, result ->
-                runCatching { handleResponse(result) }
-                    .mapCatching { onSuccess.invoke(it ?: throw AssertionError("Request Success, but Data Doesn't Exist")) }
+                runCatching { handleResponseOrThrow(result) }
+                    .mapCatching { onSuccess.invoke(it) }
                     .getOrElse { onFailure?.invoke(it) }
             }
     }
@@ -90,13 +93,12 @@ class KoreanBots @JvmOverloads constructor(
      */
     @JvmOverloads
     @Throws(RequestFailedException::class)
-    fun searchBots(query: String, page: Int = 1): SearchResult = handleResponse(
+    fun searchBots(query: String, page: Int = 1): SearchResult = handleResponseOrThrow(
         fuelManager
             .get("/v2/search/bots", listOf("query" to query, "page" to page))
             .responseObject<ResponseWrapper<SearchResult>>(mapper = mapper)
             .third
     )
-        ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
 
     /**
      * 봇을 검색합니다.
@@ -110,8 +112,8 @@ class KoreanBots @JvmOverloads constructor(
         fuelManager
             .get("/v2/search/bots", listOf("query" to query, "page" to page))
             .responseObject<ResponseWrapper<SearchResult>>(mapper = mapper) { _, _, result ->
-                runCatching { handleResponse(result) }
-                    .mapCatching { onSuccess.invoke(it ?: throw AssertionError("Request Success, but Data Doesn't Exist")) }
+                runCatching { handleResponseOrThrow(result) }
+                    .mapCatching { onSuccess.invoke(it) }
                     .getOrElse { onFailure?.invoke(it) }
             }
     }
@@ -124,13 +126,12 @@ class KoreanBots @JvmOverloads constructor(
      */
     @JvmOverloads
     @Throws(RequestFailedException::class)
-    fun getHeartRanking(page: Int = 1): SearchResult = handleResponse(
+    fun getHeartRanking(page: Int = 1): SearchResult = handleResponseOrThrow(
         fuelManager
             .get("/v2/list/bots/votes", listOf("page" to page))
             .responseObject<ResponseWrapper<SearchResult>>(mapper = mapper)
             .third
     )
-        ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
 
     /**
      * 하트 랭킹을 받아옵니다.
@@ -143,8 +144,8 @@ class KoreanBots @JvmOverloads constructor(
         fuelManager
             .get("/v2/list/bots/votes", listOf("page" to page))
             .responseObject<ResponseWrapper<SearchResult>>(mapper = mapper) { _, _, result ->
-                runCatching { handleResponse(result) }
-                    .mapCatching { onSuccess.invoke(it ?: throw AssertionError("Request Success, but Data Doesn't Exist")) }
+                runCatching { handleResponseOrThrow(result) }
+                    .mapCatching { onSuccess.invoke(it) }
                     .getOrElse { onFailure?.invoke(it) }
             }
     }
@@ -155,13 +156,12 @@ class KoreanBots @JvmOverloads constructor(
      * @return [SearchResult] 인스턴스
      */
     @Throws(RequestFailedException::class)
-    fun getNewBots(): SearchResult = handleResponse(
+    fun getNewBots(): SearchResult = handleResponseOrThrow(
         fuelManager
             .get("/v2/list/bots/new")
             .responseObject<ResponseWrapper<SearchResult>>(mapper = mapper)
             .third
     )
-        ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
 
     /**
      * 한디리에 새롭게 등록된 봇들을 받아옵니다.
@@ -173,8 +173,8 @@ class KoreanBots @JvmOverloads constructor(
         fuelManager
             .get("/v2/list/bots/new")
             .responseObject<ResponseWrapper<SearchResult>>(mapper = mapper) { _, _, result ->
-                runCatching { handleResponse(result) }
-                    .mapCatching { onSuccess.invoke(it ?: throw AssertionError("Request Success, but Data Doesn't Exist")) }
+                runCatching { handleResponseOrThrow(result) }
+                    .mapCatching { onSuccess.invoke(it) }
                     .getOrElse { onFailure?.invoke(it) }
             }
     }
@@ -186,14 +186,13 @@ class KoreanBots @JvmOverloads constructor(
      * @return [Bot] 인스턴스
      */
     @Throws(RequestFailedException::class)
-    fun checkUserVote(userId: String): Voted = handleResponse(
+    fun checkUserVote(userId: String): Voted = handleResponseOrThrow(
         fuelManager
             .get("/v2/bots/$botId/vote", listOf("userID" to userId))
             .header(Headers.AUTHORIZATION, token)
             .responseObject<ResponseWrapper<Voted>>(mapper = mapper)
             .third
     )
-        ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
 
     /**
      * 유저가 봇을 투표했는지 확인합니다.
@@ -207,8 +206,8 @@ class KoreanBots @JvmOverloads constructor(
             .get("/v2/bots/$botId/vote", listOf("userID" to userId))
             .header(Headers.AUTHORIZATION, token)
             .responseObject<ResponseWrapper<Voted>>(mapper = mapper) { _, _, result ->
-                runCatching { handleResponse(result) }
-                    .mapCatching { onSuccess.invoke(it ?: throw AssertionError("Request Success, but Data Doesn't Exist")) }
+                runCatching { handleResponseOrThrow(result) }
+                    .mapCatching { onSuccess.invoke(it) }
                     .getOrElse { onFailure?.invoke(it) }
             }
     }
@@ -256,13 +255,12 @@ class KoreanBots @JvmOverloads constructor(
      * @return [User] 인스턴스
      */
     @Throws(RequestFailedException::class)
-    fun getUserInfo(userId: String): User = handleResponse(
+    fun getUserInfo(userId: String): User = handleResponseOrThrow(
         fuelManager
             .get("/v2/users/$userId")
             .responseObject<ResponseWrapper<User>>(mapper = mapper)
             .third
     )
-        ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
 
     /**
      * 유저 정보를 받아옵니다.
@@ -276,15 +274,19 @@ class KoreanBots @JvmOverloads constructor(
             .get("/v2/users/$userId")
             .header(Headers.AUTHORIZATION, token)
             .responseObject<ResponseWrapper<User>>(mapper = mapper) { _, _, result ->
-                runCatching { handleResponse(result) }
-                    .mapCatching { onSuccess.invoke(it ?: throw AssertionError("Request Success, but Data Doesn't Exist")) }
+                runCatching { handleResponseOrThrow(result) }
+                    .mapCatching { onSuccess.invoke(it) }
                     .getOrElse { onFailure?.invoke(it) }
             }
     }
 
     private fun <T> handleResponse(result: Result<ResponseWrapper<T>, FuelError>): T? =
         result.getOrElse {
+            if (it.exception is JacksonException) throw InvalidDataReceivedException(it.exception)
             throw mapper.readValue<RequestFailedException>(it.errorData)
         }
             .data
+
+    private fun <T> handleResponseOrThrow(result: Result<ResponseWrapper<T>, FuelError>): T =
+        handleResponse(result) ?: throw NoDataReceivedException()
 }
