@@ -50,12 +50,10 @@ class KoreanBots @JvmOverloads constructor(
     }
 
     /**
-     * [Bot] 봇 정보를 받아옵니다.
-     * @param id 봇의 ID 입니다.
-     *
-     * @throws [RequestFailedException] 요청이 실패한 경우 [RequestFailedException]을 던집니다.
-     *
-     * @return [Bot] 봇 정보를 반환합니다.
+     * 봇 정보를 받아옵니다.
+     * @param id 받아올 봇의 아이디
+     * @throws [RequestFailedException] 요청이 실패한 경우
+     * @return [Bot] 인스턴스
      */
     @Throws(RequestFailedException::class)
     fun getBotInfo(id: String): Bot = handleResponse(
@@ -67,10 +65,10 @@ class KoreanBots @JvmOverloads constructor(
         ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
 
     /**
-     * [Bot] 봇 정보를 비동기적으로 받아옵니다.
-     * @param id 봇의 ID 입니다.
-     * @param onSuccess 요청이 성공한 경우 호출됩니다.
-     * @param onFailure 요청이 실패한 경우 호출됩니다. null인 경우 아무 동작도 하지 않습니다. 기본값은 null입니다.
+     * 봇 정보를 받아옵니다.
+     * @param id 받아올 봇의 아이디
+     * @param onSuccess 요청이 성공한 경우 호출될 콜백 함수
+     * @param onFailure 요청이 실패한 경우 호출될 콜백 함수(기본값: null, 아무 동작도 하지 않음)
      */
     @JvmOverloads
     fun getBotInfo(id: String, onSuccess: (Bot) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
@@ -83,6 +81,13 @@ class KoreanBots @JvmOverloads constructor(
             }
     }
 
+    /**
+     * 봇을 검색합니다.
+     * @param query 검색어
+     * @param page 페이지 번호(기본값: 1)
+     * @throws [RequestFailedException] 요청이 실패한 경우
+     * @return [SearchResult] 인스턴스
+     */
     @JvmOverloads
     @Throws(RequestFailedException::class)
     fun searchBots(query: String, page: Int = 1): SearchResult = handleResponse(
@@ -93,6 +98,13 @@ class KoreanBots @JvmOverloads constructor(
     )
         ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
 
+    /**
+     * 봇을 검색합니다.
+     * @param query 검색어
+     * @param page 페이지 번호(기본값: 1)
+     * @param onSuccess 요청이 성공한 경우 호출될 콜백 함수
+     * @param onFailure 요청이 실패한 경우 호출될 콜백 함수(기본값: null, 아무 동작도 하지 않음)
+     */
     @JvmOverloads
     fun searchBots(query: String, page: Int = 1, onSuccess: (SearchResult) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
         fuelManager
@@ -104,6 +116,12 @@ class KoreanBots @JvmOverloads constructor(
             }
     }
 
+    /**
+     * 하트 랭킹을 받아옵니다.
+     * @param page 페이지 번호(기본값: 1)
+     * @throws [RequestFailedException] 요청이 실패한 경우
+     * @return [SearchResult] 인스턴스
+     */
     @JvmOverloads
     @Throws(RequestFailedException::class)
     fun getHeartRanking(page: Int = 1): SearchResult = handleResponse(
@@ -114,6 +132,12 @@ class KoreanBots @JvmOverloads constructor(
     )
         ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
 
+    /**
+     * 하트 랭킹을 받아옵니다.
+     * @param page 페이지 번호(기본값: 1)
+     * @param onSuccess 요청이 성공한 경우 호출될 콜백 함수
+     * @param onFailure 요청이 실패한 경우 호출될 콜백 함수(기본값: null, 아무 동작도 하지 않음)
+     */
     @JvmOverloads
     fun getHeartRanking(page: Int = 1, onSuccess: (SearchResult) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
         fuelManager
@@ -125,6 +149,11 @@ class KoreanBots @JvmOverloads constructor(
             }
     }
 
+    /**
+     * 한디리에 새롭게 등록된 봇들을 받아옵니다.
+     * @throws [RequestFailedException] 요청이 실패한 경우
+     * @return [SearchResult] 인스턴스
+     */
     @Throws(RequestFailedException::class)
     fun getNewBots(): SearchResult = handleResponse(
         fuelManager
@@ -134,6 +163,11 @@ class KoreanBots @JvmOverloads constructor(
     )
         ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
 
+    /**
+     * 한디리에 새롭게 등록된 봇들을 받아옵니다.
+     * @param onSuccess 요청이 성공한 경우 호출될 콜백 함수
+     * @param onFailure 요청이 실패한 경우 호출될 콜백 함수(기본값: null, 아무 동작도 하지 않음)
+     */
     @JvmOverloads
     fun getNewBots(onSuccess: (SearchResult) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
         fuelManager
@@ -147,12 +181,10 @@ class KoreanBots @JvmOverloads constructor(
 
     /**
      * 유저가 봇을 투표했는지 확인합니다.
-     * @param id 봇의 ID 입니다.
-     * @param userId 유저의 ID 입니다.
-     *
-     * @throws [RequestFailedException] 요청이 실패한 경우 [RequestFailedException]을 던집니다.
-     *
-     * @return [Bot] 봇 정보를 반환합니다.
+     * @param id 봇의 아이디
+     * @param userId 유저의 아이디
+     * @throws [RequestFailedException] 요청이 실패한 경우
+     * @return [Bot] 인스턴스
      */
     @Throws(RequestFailedException::class)
     fun checkUserVote(id: String, userId: String): Voted = handleResponse(
@@ -165,11 +197,11 @@ class KoreanBots @JvmOverloads constructor(
         ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
 
     /**
-     * 유저가 봇을 투표했는지 비동기적으로 확인합니다.
-     * @param id 봇의 ID 입니다.
-     * @param userId 유저의 ID 입니다.
-     * @param onSuccess 요청이 성공한 경우 호출됩니다.
-     * @param onFailure 요청이 실패한 경우 호출됩니다. null인 경우 아무 동작도 하지 않습니다. 기본값은 null입니다.
+     * 유저가 봇을 투표했는지 확인합니다.
+     * @param id 봇의 아이디
+     * @param userId 유저의 아이디
+     * @param onSuccess 요청이 성공한 경우 호출될 콜백 함수
+     * @param onFailure 요청이 실패한 경우 호출될 콜백 함수(기본값: null, 아무 동작도 하지 않음)
      */
     @JvmOverloads
     fun checkUserVote(id: String, userId: String, onSuccess: (Voted) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
@@ -185,12 +217,9 @@ class KoreanBots @JvmOverloads constructor(
 
     /**
      * 봇 서버 수를 업데이트합니다.
-     * @param id 봇의 ID 입니다.
-     * @param servers 서버 수 입니다.
-     *
-     * @throws [RequestFailedException] 요청이 실패한 경우 [RequestFailedException]을 던집니다.
-     *
-     * @return [Bot] 봇 정보를 반환합니다.
+     * @param id 봇의 아이디
+     * @param servers 현재 서버 수
+     * @throws [RequestFailedException] 요청이 실패한 경우
      */
     @Throws(RequestFailedException::class)
     fun updateBotServers(id: String, servers: Int) {
@@ -205,10 +234,11 @@ class KoreanBots @JvmOverloads constructor(
     }
 
     /**
-     * [Bot] 봇 정보를 비동기적으로 받아옵니다.
-     * @param id 봇의 ID 입니다.
-     * @param onSuccess 요청이 성공한 경우 호출됩니다.
-     * @param onFailure 요청이 실패한 경우 호출됩니다. null인 경우 아무 동작도 하지 않습니다. 기본값은 null입니다.
+     * 봇 서버 수를 업데이트합니다.
+     * @param id 봇의 아이디
+     * @param servers 현재 서버 수
+     * @param onSuccess 요청이 성공한 경우 호출될 콜백 함수
+     * @param onFailure 요청이 실패한 경우 호출될 콜백 함수(기본값: null, 아무 동작도 하지 않음)
      */
     @JvmOverloads
     fun updateBotServers(id: String, servers: Int, onSuccess: () -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
@@ -224,12 +254,10 @@ class KoreanBots @JvmOverloads constructor(
     }
 
     /**
-     * [User] 유저 정보를 받아옵니다.
-     * @param id 유저의 ID 입니다.
-     *
-     * @throws [RequestFailedException] 요청이 실패한 경우 [RequestFailedException]을 던집니다.
-     *
-     * @return [User] 유저 정보를 반환합니다.
+     * 유저 정보를 받아옵니다.
+     * @param id 유저의 아이디
+     * @throws [RequestFailedException] 요청이 실패한 경우
+     * @return [User] 인스턴스
      */
     @Throws(RequestFailedException::class)
     fun getUserInfo(id: String): User = handleResponse(
@@ -241,10 +269,10 @@ class KoreanBots @JvmOverloads constructor(
         ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
 
     /**
-     * [User] 유저 정보를 비동기적으로 받아옵니다.
-     * @param id 유저의 ID 입니다.
-     * @param onSuccess 요청이 성공한 경우 호출됩니다.
-     * @param onFailure 요청이 실패한 경우 호출됩니다. null인 경우 아무 동작도 하지 않습니다. 기본값은 null입니다.
+     * 유저 정보를 받아옵니다.
+     * @param id 유저의 아이디
+     * @param onSuccess 요청이 성공한 경우 호출될 콜백 함수
+     * @param onFailure 요청이 실패한 경우 호출될 콜백 함수(기본값: null, 아무 동작도 하지 않음)
      */
     @JvmOverloads
     fun getUserInfo(id: String, onSuccess: (User) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
