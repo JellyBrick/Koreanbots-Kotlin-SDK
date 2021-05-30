@@ -35,6 +35,7 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.getOrElse
 
 class KoreanBots @JvmOverloads constructor(
+    private val botId: String,
     private val token: String,
     private val mapper: ObjectMapper = JsonMapper()
         .registerKotlinModule()
@@ -51,14 +52,14 @@ class KoreanBots @JvmOverloads constructor(
 
     /**
      * 봇 정보를 받아옵니다.
-     * @param id 받아올 봇의 아이디
+     * @param targetId 받아올 봇의 아이디
      * @throws [RequestFailedException] 요청이 실패한 경우
      * @return [Bot] 인스턴스
      */
     @Throws(RequestFailedException::class)
-    fun getBotInfo(id: String): Bot = handleResponse(
+    fun getBotInfo(targetId: String): Bot = handleResponse(
         fuelManager
-            .get("/v2/bots/$id")
+            .get("/v2/bots/$targetId")
             .responseObject<ResponseWrapper<Bot>>(mapper = mapper)
             .third
     )
@@ -66,14 +67,14 @@ class KoreanBots @JvmOverloads constructor(
 
     /**
      * 봇 정보를 받아옵니다.
-     * @param id 받아올 봇의 아이디
+     * @param targetId 받아올 봇의 아이디
      * @param onSuccess 요청이 성공한 경우 호출될 콜백 함수
      * @param onFailure 요청이 실패한 경우 호출될 콜백 함수(기본값: null, 아무 동작도 하지 않음)
      */
     @JvmOverloads
-    fun getBotInfo(id: String, onSuccess: (Bot) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
+    fun getBotInfo(targetId: String, onSuccess: (Bot) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
         fuelManager
-            .get("/v2/bots/$id")
+            .get("/v2/bots/$targetId")
             .responseObject<ResponseWrapper<Bot>>(mapper = mapper) { _, _, result ->
                 runCatching { handleResponse(result) }
                     .mapCatching { onSuccess.invoke(it ?: throw AssertionError("Request Success, but Data Doesn't Exist")) }
@@ -181,15 +182,14 @@ class KoreanBots @JvmOverloads constructor(
 
     /**
      * 유저가 봇을 투표했는지 확인합니다.
-     * @param id 봇의 아이디
      * @param userId 유저의 아이디
      * @throws [RequestFailedException] 요청이 실패한 경우
      * @return [Bot] 인스턴스
      */
     @Throws(RequestFailedException::class)
-    fun checkUserVote(id: String, userId: String): Voted = handleResponse(
+    fun checkUserVote(userId: String): Voted = handleResponse(
         fuelManager
-            .get("/v2/bots/$id/vote", listOf("userID" to userId))
+            .get("/v2/bots/$botId/vote", listOf("userID" to userId))
             .header(Headers.AUTHORIZATION, token)
             .responseObject<ResponseWrapper<Voted>>(mapper = mapper)
             .third
@@ -198,15 +198,14 @@ class KoreanBots @JvmOverloads constructor(
 
     /**
      * 유저가 봇을 투표했는지 확인합니다.
-     * @param id 봇의 아이디
      * @param userId 유저의 아이디
      * @param onSuccess 요청이 성공한 경우 호출될 콜백 함수
      * @param onFailure 요청이 실패한 경우 호출될 콜백 함수(기본값: null, 아무 동작도 하지 않음)
      */
     @JvmOverloads
-    fun checkUserVote(id: String, userId: String, onSuccess: (Voted) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
+    fun checkUserVote(userId: String, onSuccess: (Voted) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
         fuelManager
-            .get("/v2/bots/$id/vote", listOf("userID" to userId))
+            .get("/v2/bots/$botId/vote", listOf("userID" to userId))
             .header(Headers.AUTHORIZATION, token)
             .responseObject<ResponseWrapper<Voted>>(mapper = mapper) { _, _, result ->
                 runCatching { handleResponse(result) }
@@ -217,15 +216,14 @@ class KoreanBots @JvmOverloads constructor(
 
     /**
      * 봇 서버 수를 업데이트합니다.
-     * @param id 봇의 아이디
      * @param servers 현재 서버 수
      * @throws [RequestFailedException] 요청이 실패한 경우
      */
     @Throws(RequestFailedException::class)
-    fun updateBotServers(id: String, servers: Int) {
+    fun updateBotServers(servers: Int) {
         handleResponse(
             fuelManager
-                .post("/v2/bots/$id/stats")
+                .post("/v2/bots/$botId/stats")
                 .header(Headers.AUTHORIZATION, token)
                 .objectBody(ServersUpdate(servers), mapper = mapper)
                 .responseObject<ResponseWrapper<Unit>>(mapper = mapper)
@@ -235,15 +233,14 @@ class KoreanBots @JvmOverloads constructor(
 
     /**
      * 봇 서버 수를 업데이트합니다.
-     * @param id 봇의 아이디
      * @param servers 현재 서버 수
      * @param onSuccess 요청이 성공한 경우 호출될 콜백 함수
      * @param onFailure 요청이 실패한 경우 호출될 콜백 함수(기본값: null, 아무 동작도 하지 않음)
      */
     @JvmOverloads
-    fun updateBotServers(id: String, servers: Int, onSuccess: () -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
+    fun updateBotServers(servers: Int, onSuccess: () -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
         fuelManager
-            .post("/v2/bots/$id/stats")
+            .post("/v2/bots/$botId/stats")
             .header(Headers.AUTHORIZATION, token)
             .objectBody(ServersUpdate(servers), mapper = mapper)
             .responseObject<ResponseWrapper<Unit>>(mapper = mapper) { _, _, result ->
@@ -255,14 +252,14 @@ class KoreanBots @JvmOverloads constructor(
 
     /**
      * 유저 정보를 받아옵니다.
-     * @param id 유저의 아이디
+     * @param userId 받아올 유저의 아이디
      * @throws [RequestFailedException] 요청이 실패한 경우
      * @return [User] 인스턴스
      */
     @Throws(RequestFailedException::class)
-    fun getUserInfo(id: String): User = handleResponse(
+    fun getUserInfo(userId: String): User = handleResponse(
         fuelManager
-            .get("/v2/users/$id")
+            .get("/v2/users/$userId")
             .responseObject<ResponseWrapper<User>>(mapper = mapper)
             .third
     )
@@ -270,14 +267,14 @@ class KoreanBots @JvmOverloads constructor(
 
     /**
      * 유저 정보를 받아옵니다.
-     * @param id 유저의 아이디
+     * @param userId 받아올 유저의 아이디
      * @param onSuccess 요청이 성공한 경우 호출될 콜백 함수
      * @param onFailure 요청이 실패한 경우 호출될 콜백 함수(기본값: null, 아무 동작도 하지 않음)
      */
     @JvmOverloads
-    fun getUserInfo(id: String, onSuccess: (User) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
+    fun getUserInfo(userId: String, onSuccess: (User) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
         fuelManager
-            .get("/v2/users/$id")
+            .get("/v2/users/$userId")
             .header(Headers.AUTHORIZATION, token)
             .responseObject<ResponseWrapper<User>>(mapper = mapper) { _, _, result ->
                 runCatching { handleResponse(result) }
