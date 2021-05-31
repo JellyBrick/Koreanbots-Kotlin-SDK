@@ -21,13 +21,13 @@ dependencies {
 }
 
 tasks.withType<KotlinCompile> {
-    sourceCompatibility = JavaVersion.VERSION_1_7.toString()
-    targetCompatibility = JavaVersion.VERSION_1_7.toString()
-    kotlinOptions.jvmTarget = JavaVersion.VERSION_1_6.toString() // Jackson jvmTarget = JavaVersion.VERSION_1_7
+    sourceCompatibility = JavaVersion.VERSION_1_8.toString()
+    targetCompatibility = JavaVersion.VERSION_1_8.toString()
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8.toString()
 }
 tasks.withType<JavaCompile> {
-    sourceCompatibility = JavaVersion.VERSION_1_7.toString()
-    targetCompatibility = JavaVersion.VERSION_1_7.toString()
+    sourceCompatibility = JavaVersion.VERSION_1_8.toString()
+    targetCompatibility = JavaVersion.VERSION_1_8.toString()
 }
 
 val githubRepo = project.property("github.repo") as String
