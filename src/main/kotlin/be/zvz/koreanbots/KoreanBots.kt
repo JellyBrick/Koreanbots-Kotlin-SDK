@@ -16,9 +16,13 @@ package be.zvz.koreanbots
 
 import be.zvz.koreanbots.dto.Bot
 import be.zvz.koreanbots.dto.ResponseWrapper
-import be.zvz.koreanbots.dto.ServersUpdate
+import be.zvz.koreanbots.dto.SearchResult
 import be.zvz.koreanbots.dto.User
 import be.zvz.koreanbots.dto.Voted
+import be.zvz.koreanbots.exception.InvalidDataReceivedException
+import be.zvz.koreanbots.exception.NoDataReceivedException
+import be.zvz.koreanbots.exception.RequestFailedException
+import com.fasterxml.jackson.core.JacksonException
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -34,6 +38,7 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.getOrElse
 
 class KoreanBots @JvmOverloads constructor(
+    private val botId: String,
     private val token: String,
     private val mapper: ObjectMapper = JsonMapper()
         .registerKotlinModule()
@@ -49,110 +54,193 @@ class KoreanBots @JvmOverloads constructor(
     }
 
     /**
-     * [Bot] 봇 정보를 받아옵니다.
-     * @param id 봇의 ID 입니다.
-     *
-     * @throws [RequestFailedException] 요청이 실패한 경우 [RequestFailedException]을 던집니다.
-     *
-     * @return [Bot] 봇 정보를 반환합니다.
+     * 봇 정보를 받아옵니다.
+     * @param targetId 받아올 봇의 아이디
+     * @throws [RequestFailedException] 요청이 실패한 경우
+     * @return [Bot] 인스턴스
      */
     @Throws(RequestFailedException::class)
-    fun getBotInfo(id: String): Bot = handleResponse(
+    fun getBotInfo(targetId: String): Bot = handleResponseOrThrow(
         fuelManager
-            .get("/v2/bots/$id")
+            .get("/v2/bots/$targetId")
             .responseObject<ResponseWrapper<Bot>>(mapper = mapper)
             .third
     )
-        ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
 
     /**
-     * [Bot] 봇 정보를 비동기적으로 받아옵니다.
-     * @param id 봇의 ID 입니다.
-     * @param onSuccess 요청이 성공한 경우 호출됩니다.
-     * @param onFailure 요청이 실패한 경우 호출됩니다. null인 경우 아무 동작도 하지 않습니다. 기본값은 null입니다.
+     * 봇 정보를 받아옵니다.
+     * @param targetId 받아올 봇의 아이디
+     * @param onSuccess 요청이 성공한 경우 호출될 콜백 함수
+     * @param onFailure 요청이 실패한 경우 호출될 콜백 함수(기본값: null, 아무 동작도 하지 않음)
      */
     @JvmOverloads
-    fun getBotInfo(id: String, onSuccess: (Bot) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
+    fun getBotInfo(targetId: String, onSuccess: (Bot) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
         fuelManager
-            .get("/v2/bots/$id")
+            .get("/v2/bots/$targetId")
             .responseObject<ResponseWrapper<Bot>>(mapper = mapper) { _, _, result ->
-                runCatching { handleResponse(result) }
-                    .mapCatching { onSuccess.invoke(it ?: throw AssertionError("Request Success, but Data Doesn't Exist")) }
+                runCatching { handleResponseOrThrow(result) }
+                    .mapCatching { onSuccess.invoke(it) }
+                    .getOrElse { onFailure?.invoke(it) }
+            }
+    }
+
+    /**
+     * 봇을 검색합니다.
+     * @param query 검색어
+     * @param page 페이지 번호(기본값: 1)
+     * @throws [RequestFailedException] 요청이 실패한 경우
+     * @return [SearchResult] 인스턴스
+     */
+    @JvmOverloads
+    @Throws(RequestFailedException::class)
+    fun searchBots(query: String, page: Int = 1): SearchResult = handleResponseOrThrow(
+        fuelManager
+            .get("/v2/search/bots", listOf("query" to query, "page" to page))
+            .responseObject<ResponseWrapper<SearchResult>>(mapper = mapper)
+            .third
+    )
+
+    /**
+     * 봇을 검색합니다.
+     * @param query 검색어
+     * @param page 페이지 번호(기본값: 1)
+     * @param onSuccess 요청이 성공한 경우 호출될 콜백 함수
+     * @param onFailure 요청이 실패한 경우 호출될 콜백 함수(기본값: null, 아무 동작도 하지 않음)
+     */
+    @JvmOverloads
+    fun searchBots(query: String, page: Int = 1, onSuccess: (SearchResult) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
+        fuelManager
+            .get("/v2/search/bots", listOf("query" to query, "page" to page))
+            .responseObject<ResponseWrapper<SearchResult>>(mapper = mapper) { _, _, result ->
+                runCatching { handleResponseOrThrow(result) }
+                    .mapCatching { onSuccess.invoke(it) }
+                    .getOrElse { onFailure?.invoke(it) }
+            }
+    }
+
+    /**
+     * 하트 랭킹을 받아옵니다.
+     * @param page 페이지 번호(기본값: 1)
+     * @throws [RequestFailedException] 요청이 실패한 경우
+     * @return [SearchResult] 인스턴스
+     */
+    @JvmOverloads
+    @Throws(RequestFailedException::class)
+    fun getHeartRanking(page: Int = 1): SearchResult = handleResponseOrThrow(
+        fuelManager
+            .get("/v2/list/bots/votes", listOf("page" to page))
+            .responseObject<ResponseWrapper<SearchResult>>(mapper = mapper)
+            .third
+    )
+
+    /**
+     * 하트 랭킹을 받아옵니다.
+     * @param page 페이지 번호(기본값: 1)
+     * @param onSuccess 요청이 성공한 경우 호출될 콜백 함수
+     * @param onFailure 요청이 실패한 경우 호출될 콜백 함수(기본값: null, 아무 동작도 하지 않음)
+     */
+    @JvmOverloads
+    fun getHeartRanking(page: Int = 1, onSuccess: (SearchResult) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
+        fuelManager
+            .get("/v2/list/bots/votes", listOf("page" to page))
+            .responseObject<ResponseWrapper<SearchResult>>(mapper = mapper) { _, _, result ->
+                runCatching { handleResponseOrThrow(result) }
+                    .mapCatching { onSuccess.invoke(it) }
+                    .getOrElse { onFailure?.invoke(it) }
+            }
+    }
+
+    /**
+     * 한디리에 새롭게 등록된 봇들을 받아옵니다.
+     * @throws [RequestFailedException] 요청이 실패한 경우
+     * @return [SearchResult] 인스턴스
+     */
+    @Throws(RequestFailedException::class)
+    fun getNewBots(): SearchResult = handleResponseOrThrow(
+        fuelManager
+            .get("/v2/list/bots/new")
+            .responseObject<ResponseWrapper<SearchResult>>(mapper = mapper)
+            .third
+    )
+
+    /**
+     * 한디리에 새롭게 등록된 봇들을 받아옵니다.
+     * @param onSuccess 요청이 성공한 경우 호출될 콜백 함수
+     * @param onFailure 요청이 실패한 경우 호출될 콜백 함수(기본값: null, 아무 동작도 하지 않음)
+     */
+    @JvmOverloads
+    fun getNewBots(onSuccess: (SearchResult) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
+        fuelManager
+            .get("/v2/list/bots/new")
+            .responseObject<ResponseWrapper<SearchResult>>(mapper = mapper) { _, _, result ->
+                runCatching { handleResponseOrThrow(result) }
+                    .mapCatching { onSuccess.invoke(it) }
                     .getOrElse { onFailure?.invoke(it) }
             }
     }
 
     /**
      * 유저가 봇을 투표했는지 확인합니다.
-     * @param id 봇의 ID 입니다.
-     * @param userId 유저의 ID 입니다.
-     *
-     * @throws [RequestFailedException] 요청이 실패한 경우 [RequestFailedException]을 던집니다.
-     *
-     * @return [Bot] 봇 정보를 반환합니다.
+     * @param userId 유저의 아이디
+     * @throws [RequestFailedException] 요청이 실패한 경우
+     * @return [Bot] 인스턴스
      */
     @Throws(RequestFailedException::class)
-    fun checkUserVote(id: String, userId: String): Voted = handleResponse(
+    fun checkUserVote(userId: String): Voted = handleResponseOrThrow(
         fuelManager
-            .get("/v2/bots/$id/vote", listOf("userID" to userId))
+            .get("/v2/bots/$botId/vote", listOf("userID" to userId))
             .header(Headers.AUTHORIZATION, token)
             .responseObject<ResponseWrapper<Voted>>(mapper = mapper)
             .third
     )
-        ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
 
     /**
-     * 유저가 봇을 투표했는지 비동기적으로 확인합니다.
-     * @param id 봇의 ID 입니다.
-     * @param userId 유저의 ID 입니다.
-     * @param onSuccess 요청이 성공한 경우 호출됩니다.
-     * @param onFailure 요청이 실패한 경우 호출됩니다. null인 경우 아무 동작도 하지 않습니다. 기본값은 null입니다.
+     * 유저가 봇을 투표했는지 확인합니다.
+     * @param userId 유저의 아이디
+     * @param onSuccess 요청이 성공한 경우 호출될 콜백 함수
+     * @param onFailure 요청이 실패한 경우 호출될 콜백 함수(기본값: null, 아무 동작도 하지 않음)
      */
     @JvmOverloads
-    fun checkUserVote(id: String, userId: String, onSuccess: (Voted) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
+    fun checkUserVote(userId: String, onSuccess: (Voted) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
         fuelManager
-            .get("/v2/bots/$id/vote", listOf("userID" to userId))
+            .get("/v2/bots/$botId/vote", listOf("userID" to userId))
             .header(Headers.AUTHORIZATION, token)
             .responseObject<ResponseWrapper<Voted>>(mapper = mapper) { _, _, result ->
-                runCatching { handleResponse(result) }
-                    .mapCatching { onSuccess.invoke(it ?: throw AssertionError("Request Success, but Data Doesn't Exist")) }
+                runCatching { handleResponseOrThrow(result) }
+                    .mapCatching { onSuccess.invoke(it) }
                     .getOrElse { onFailure?.invoke(it) }
             }
     }
 
     /**
      * 봇 서버 수를 업데이트합니다.
-     * @param id 봇의 ID 입니다.
-     * @param servers 서버 수 입니다.
-     *
-     * @throws [RequestFailedException] 요청이 실패한 경우 [RequestFailedException]을 던집니다.
-     *
-     * @return [Bot] 봇 정보를 반환합니다.
+     * @param count 현재 서버 수
+     * @throws [RequestFailedException] 요청이 실패한 경우
      */
     @Throws(RequestFailedException::class)
-    fun updateBotServers(id: String, servers: Int) {
+    fun updateServerCount(count: Int) {
         handleResponse(
             fuelManager
-                .post("/v2/bots/$id/stats")
+                .post("/v2/bots/$botId/stats")
                 .header(Headers.AUTHORIZATION, token)
-                .objectBody(ServersUpdate(servers), mapper = mapper)
+                .objectBody(mapOf("servers" to count), mapper = mapper)
                 .responseObject<ResponseWrapper<Unit>>(mapper = mapper)
                 .third
         )
     }
 
     /**
-     * [Bot] 봇 정보를 비동기적으로 받아옵니다.
-     * @param id 봇의 ID 입니다.
-     * @param onSuccess 요청이 성공한 경우 호출됩니다.
-     * @param onFailure 요청이 실패한 경우 호출됩니다. null인 경우 아무 동작도 하지 않습니다. 기본값은 null입니다.
+     * 봇 서버 수를 업데이트합니다.
+     * @param count 현재 서버 수
+     * @param onSuccess 요청이 성공한 경우 호출될 콜백 함수
+     * @param onFailure 요청이 실패한 경우 호출될 콜백 함수(기본값: null, 아무 동작도 하지 않음)
      */
     @JvmOverloads
-    fun updateBotServers(id: String, servers: Int, onSuccess: () -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
+    fun updateServerCount(count: Int, onSuccess: () -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
         fuelManager
-            .post("/v2/bots/$id/stats")
+            .post("/v2/bots/$botId/stats")
             .header(Headers.AUTHORIZATION, token)
-            .objectBody(ServersUpdate(servers), mapper = mapper)
+            .objectBody(mapOf("servers" to count), mapper = mapper)
             .responseObject<ResponseWrapper<Unit>>(mapper = mapper) { _, _, result ->
                 runCatching { handleResponse(result) }
                     .mapCatching { onSuccess.invoke() }
@@ -161,43 +249,44 @@ class KoreanBots @JvmOverloads constructor(
     }
 
     /**
-     * [User] 유저 정보를 받아옵니다.
-     * @param id 유저의 ID 입니다.
-     *
-     * @throws [RequestFailedException] 요청이 실패한 경우 [RequestFailedException]을 던집니다.
-     *
-     * @return [User] 유저 정보를 반환합니다.
+     * 유저 정보를 받아옵니다.
+     * @param userId 받아올 유저의 아이디
+     * @throws [RequestFailedException] 요청이 실패한 경우
+     * @return [User] 인스턴스
      */
     @Throws(RequestFailedException::class)
-    fun getUserInfo(id: String): User = handleResponse(
+    fun getUserInfo(userId: String): User = handleResponseOrThrow(
         fuelManager
-            .get("/v2/users/$id")
+            .get("/v2/users/$userId")
             .responseObject<ResponseWrapper<User>>(mapper = mapper)
             .third
     )
-        ?: throw AssertionError("Request Success, but Data Doesn't Exist") // This may not occur, but in case of server api error
 
     /**
-     * [User] 유저 정보를 비동기적으로 받아옵니다.
-     * @param id 유저의 ID 입니다.
-     * @param onSuccess 요청이 성공한 경우 호출됩니다.
-     * @param onFailure 요청이 실패한 경우 호출됩니다. null인 경우 아무 동작도 하지 않습니다. 기본값은 null입니다.
+     * 유저 정보를 받아옵니다.
+     * @param userId 받아올 유저의 아이디
+     * @param onSuccess 요청이 성공한 경우 호출될 콜백 함수
+     * @param onFailure 요청이 실패한 경우 호출될 콜백 함수(기본값: null, 아무 동작도 하지 않음)
      */
     @JvmOverloads
-    fun getUserInfo(id: String, onSuccess: (User) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
+    fun getUserInfo(userId: String, onSuccess: (User) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
         fuelManager
-            .get("/v2/users/$id")
+            .get("/v2/users/$userId")
             .header(Headers.AUTHORIZATION, token)
             .responseObject<ResponseWrapper<User>>(mapper = mapper) { _, _, result ->
-                runCatching { handleResponse(result) }
-                    .mapCatching { onSuccess.invoke(it ?: throw AssertionError("Request Success, but Data Doesn't Exist")) }
+                runCatching { handleResponseOrThrow(result) }
+                    .mapCatching { onSuccess.invoke(it) }
                     .getOrElse { onFailure?.invoke(it) }
             }
     }
 
     private fun <T> handleResponse(result: Result<ResponseWrapper<T>, FuelError>): T? =
         result.getOrElse {
+            if (it.exception is JacksonException) throw InvalidDataReceivedException(it.exception)
             throw mapper.readValue<RequestFailedException>(it.errorData)
         }
             .data
+
+    private fun <T> handleResponseOrThrow(result: Result<ResponseWrapper<T>, FuelError>): T =
+        handleResponse(result) ?: throw NoDataReceivedException()
 }
