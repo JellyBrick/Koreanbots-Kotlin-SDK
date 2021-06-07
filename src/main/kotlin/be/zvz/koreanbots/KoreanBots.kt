@@ -212,18 +212,30 @@ class KoreanBots @JvmOverloads constructor(
             }
     }
 
+    private fun getUpdateServerCountBody(serverCount: Int, shardCount: Int): Map<String, Int> =
+        mutableMapOf<String, Int>().apply {
+            if (serverCount != 0) {
+                put("servers", serverCount)
+            }
+            if (shardCount != 0) {
+                put("shards", shardCount)
+            }
+        }
+
     /**
      * 봇 서버 수를 업데이트합니다.
-     * @param count 현재 서버 수
+     * @param serverCount 현재 서버 수 (기본값: 0, 서버 수를 전송하지 않음)
+     * @param shardCount 현재 샤드 수 (기본값: 0, 샤드 수를 전송하지 않음)
      * @throws [RequestFailedException] 요청이 실패한 경우
      */
     @Throws(RequestFailedException::class)
-    fun updateServerCount(count: Int) {
+    @JvmOverloads
+    fun updateServerCount(serverCount: Int = 0, shardCount: Int = 0) {
         handleResponse(
             fuelManager
                 .post("/v2/bots/$botId/stats")
                 .header(Headers.AUTHORIZATION, token)
-                .objectBody(mapOf("servers" to count), mapper = mapper)
+                .objectBody(getUpdateServerCountBody(serverCount, shardCount), mapper = mapper)
                 .responseObject<ResponseWrapper<Unit>>(mapper = mapper)
                 .third
         )
@@ -231,16 +243,17 @@ class KoreanBots @JvmOverloads constructor(
 
     /**
      * 봇 서버 수를 업데이트합니다.
-     * @param count 현재 서버 수
+     * @param serverCount 현재 서버 수 (기본값: 0, 서버 수를 전송하지 않음)
+     * @param shardCount 현재 샤드 수 (기본값: 0, 샤드 수를 전송하지 않음)
      * @param onSuccess 요청이 성공한 경우 호출될 콜백 함수
-     * @param onFailure 요청이 실패한 경우 호출될 콜백 함수(기본값: null, 아무 동작도 하지 않음)
+     * @param onFailure 요청이 실패한 경우 호출될 콜백 함수 (기본값: null, 아무 동작도 하지 않음)
      */
     @JvmOverloads
-    fun updateServerCount(count: Int, onSuccess: () -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
+    fun updateServerCount(serverCount: Int = 0, shardCount: Int = 0, onSuccess: () -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
         fuelManager
             .post("/v2/bots/$botId/stats")
             .header(Headers.AUTHORIZATION, token)
-            .objectBody(mapOf("servers" to count), mapper = mapper)
+            .objectBody(getUpdateServerCountBody(serverCount, shardCount), mapper = mapper)
             .responseObject<ResponseWrapper<Unit>>(mapper = mapper) { _, _, result ->
                 runCatching { handleResponse(result) }
                     .mapCatching { onSuccess.invoke() }
