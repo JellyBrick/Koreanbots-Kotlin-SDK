@@ -35,7 +35,7 @@ val githubRepo = project.property("github.repo") as String
 val writeVersion by tasks.registering {
     val apiBaseUrl = project.property("api.base.url") as String
     val githubUrl = "https://github.com/$githubRepo"
-    val group = project.group as String
+    val group = "be.zvz.koreanbots"
     val version = project.version as String
 
     val template = File(rootDir, "resources/KoreanBotsInfo.kt").readText()
