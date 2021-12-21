@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.6.10"
-    id("org.jmailen.kotlinter") version "3.7.0"
+    id("org.jmailen.kotlinter") version "3.8.0"
     `maven-publish`
 }
 
