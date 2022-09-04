@@ -17,7 +17,7 @@ dependencies {
     implementation(group = "com.github.kittinunf.fuel", name = "fuel", version = "2.3.1")
     implementation(group = "com.github.kittinunf.fuel", name = "fuel-jackson", version = "2.3.1")
 
-    implementation(group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version = "2.13.3")
+    implementation(group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version = "2.13.4")
 }
 
 tasks.withType<KotlinCompile> {
